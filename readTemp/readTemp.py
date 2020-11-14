@@ -32,10 +32,14 @@ def read_temp():
 	
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/temp')
 def outputTemp():
-	masterT = read_temp()
-	return render_template("water.html", masterT=masterT)
+	#print("request made")
+	masterT =  read_temp()
+	print(masterT)
+	return str(masterT)
+	#masterT = read_temp()
+	#return render_template("water.html", masterT=masterT)
 
 def main():
 	app.run(host = '0.0.0.0', port=constants.port, debug=True)
