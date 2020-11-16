@@ -5,6 +5,7 @@ import RPi.GPIO as GPIO
 from signal import signal, SIGINT
 from flask import Flask, request, render_template, redirect
 import requests
+import threading
 
 import constants
 
@@ -28,10 +29,10 @@ def warmWater(address):
 	try:
 		while (True):
 			pumpOn(1)
-			time.sleep(1)
+			time.sleep(3)
 			masterT = float(requests.get(address).content)
 			print(masterT)
-			if (masterT > 85):
+			if (masterT > 75):
 				break
 	except:
 		print("Error occured when trying to warm Master Bathroom water")
@@ -50,7 +51,9 @@ def getTemp():
 
 @app.route('/warmMaster')
 def warmMaster():
-	warmWater("http://192.168.0.114:8081/temp")
+	print("Master bath set to warm")
+	pump_thread = threading.Thread(target=warmWater,name="warmWater", args=("http://192.168.0.114:8081/temp",))
+	pump_thread.start()
 	return redirect('/Temp')
 
 def main():
