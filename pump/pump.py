@@ -6,6 +6,7 @@ from signal import signal, SIGINT
 from flask import Flask, request, render_template, redirect
 import requests
 import threading
+import atexit
 
 import constants
 
@@ -20,7 +21,8 @@ def pumpOff(relay):
 	bus.write_byte_data(DEVICE_ADDR, relay, 0x00)
 	print("pump turned off")
 
-def sigHandler(signal_received, frame):
+#def sigHandler(signal_received, frame):
+def sigHandler():
 	print("Pump turned off and exiting program")
 	pumpOff(1)
 	sys.exit(0)
@@ -29,7 +31,7 @@ def warmWater(address):
 	try:
 		while (True):
 			pumpOn(1)
-			time.sleep(3)
+			time.sleep(1)
 			masterT = float(requests.get(address).content)
 			print(masterT)
 			if (masterT > 75):
@@ -44,7 +46,7 @@ app = Flask(__name__)
 
 @app.route('/Temp')
 def getTemp():
-	masterT = float(requests.get("http://192.168.0.114:8081/temp").content)
+	masterT = float(requests.get("http://192.168.0.114:8080/temp").content)
 	print (masterT)
 	#guestT = requests.get("http://123/temp")
 	return render_template("water.html", masterT=masterT)
@@ -52,7 +54,7 @@ def getTemp():
 @app.route('/warmMaster')
 def warmMaster():
 	print("Master bath set to warm")
-	pump_thread = threading.Thread(target=warmWater,name="warmWater", args=("http://192.168.0.114:8081/temp",))
+	pump_thread = threading.Thread(target=warmWater, daemon=True, args=("http://192.168.0.114:8080/temp",))
 	pump_thread.start()
 	return redirect('/Temp')
 
@@ -60,5 +62,6 @@ def main():
 	app.run(host = '0.0.0.0', port=constants.port, debug=True)
 
 if __name__ == "__main__":
-	signal(SIGINT, sigHandler)
+	#signal(SIGINT, sigHandler)
+	atexit.register(sigHandler)
 	main()
