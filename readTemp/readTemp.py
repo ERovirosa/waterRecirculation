@@ -4,14 +4,19 @@ import constants
 import os
 import glob
 import time
- 
+import threading
+import sys
+from signal import signal, SIGINT
+import atexit
+
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
  
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
- 
+masterT =  0
+
 def read_temp_raw():
     f = open(device_file, 'r')
     lines = f.readlines()
@@ -29,20 +34,35 @@ def read_temp():
         temp_c = float(temp_string) / 1000.0
         temp_f = temp_c * 9.0 / 5.0 + 32.0
         return temp_f
-	
+
+def sync_temp():
+	try:
+		global masterT
+		while True:
+			masterT = read_temp()
+			time.sleep(1)
+	except:
+		print("Error occured closing background sync_Temp thread")
+		sys.exit(0)
+
+#def sigHandler(signal_received, frame):
+def sigHandler():
+        print("Closing the master Bedroom sensor")
+        sys.exit(0)
+
 app = Flask(__name__)
 
 @app.route('/temp')
 def outputTemp():
-	#print("request made")
-	masterT =  read_temp()
 	print(masterT)
 	return str(masterT)
-	#masterT = read_temp()
-	#return render_template("water.html", masterT=masterT)
 
 def main():
+	pump_thread = threading.Thread(target=sync_temp, daemon=True)
+	pump_thread.start()
 	app.run(host = '0.0.0.0', port=constants.port, debug=True)
 
 if __name__ == "__main__":
+	#signal(SIGINT, sigHandler)
+	atexit.register(sigHandler)
 	main()
