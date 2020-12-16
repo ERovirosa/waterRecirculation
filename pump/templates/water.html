@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>MasterBath Temp</title>
+	<title>Water Recirculation</title>
 	<script>
 		function timedRefresh(timeoutPeriod) {
 			setTimeout("location.reload(true);", timeoutPeriod);
@@ -12,19 +12,33 @@
 
 		window.onload = timedRefresh(1000);
 	</script>
+	<link rel="stylesheet" type="text/css" href="../static/styles.css"/>
 </head>
 
 <body>
-	<p>Master Bathroom:{{masterT}}</p>
-	<p>Guest Bathroom:{{guestT}}</p>
+	<div>
+	<p style="align: left;" >Master Bathroom:{{masterT}}</p>
+	<a href="/shutdown">
+		<button
+			id="masterButton"
+			style="float: right; background-color: red; color: black; font-size: 15px; text-align: center">
+			Press to turnoff pump
+		</button>
+	</a>
+	</div>
+
+	<p">Guest Bathroom:{{guestT}}</p>
+
 	<a href="/warmMaster">
 		<button
+			id="masterButton"
 			style="display:block; width:100%; height:25vh; background-color:blue; color:black; font-size: 20px; text-align:center">
 			Press to warm up water in the master bedroom
 		</button>
 	</a>
 	<a href="/warmGuest">
                 <button
+			id="guestButton"
                         style="display:block; width:100%; height:25vh; background-color:blue; color:black; font-size: 20px; text-align:center">
                         Press to warm up water in the guest bedroom
                 </button>
